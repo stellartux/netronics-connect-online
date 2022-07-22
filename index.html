@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NETronics Connect! On-Line</title>
+  <link rel="icon" href="./favicon.png">
+  <meta property="og:title" content="NETronics Connect! On-Line">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://stellartux.github.io/netronics-connect-online" />
+  <meta property="og:locale" content="en_GB">
+  <meta name="description" property="og:description"
+    content="Play Last Call BBS custom servers in the browser!">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#b11a2a">
+  <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/catv-6x12-9" type="text/css"/>
+  <style>
+    :root {
+      --font: 'CatV6x129Normal'; 
+      --color-0: #192f30;
+      --color-1: #2a4546;
+      --color-2: #2e4a4b;
+      --color-3: #264a4b;
+      --color-4: #274e50;
+      --color-5: #225a5d;
+      --color-6: #1b666a;
+      --color-7: #207479;
+      --color-8: #27898f;
+      --color-9: #2e9ea1;
+      --color-10: #37a7aa;
+      --color-11: #3fb6ba;
+      --color-12: #39c9ce;
+      --color-13: #3cd0d5;
+      --color-14: #40d7dc;
+      --color-15: #46dce1;
+      --color-16: #5ce6eb;
+      --color-17: #acf6f4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0 auto;
+    }
+
+    html,
+    body {
+      overflow: hidden;
+      display: flex;
+      min-height: 100vh;
+      place-items: center;
+      background: linear-gradient(#fd253c, #4a0000);
+      z-index: -2;
+      font-size: x-large;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: calc(50vw - 52ch);
+      margin: auto;
+      width: 104ch;
+      height: calc(50vh - 20em);
+      background: linear-gradient(to top left, #9b3535 70%, #b81725);
+      border-bottom: 2em solid #b81725;
+      box-shadow: #151819 1em 0 1em;
+    }
+
+    main {
+      box-sizing: content-box;
+      width: 100ch;
+      height: 31em;
+      min-width: min-content;
+      min-height: min-content;
+      display: flex;
+      flex-direction: column;
+      background-color: black;
+      background: url(./bg.jpg) center/100ch no-repeat;
+      border: 1ch inset #151819;
+      border-radius: 0.5ch;
+      outline: thin groove var(--color-0);
+      box-shadow: #151819 -0.5em -0.5em 1.5em inset, #151819 1em 1em 2em inset;
+    }
+
+    main::before {
+      content: '';
+      position: absolute;
+      box-sizing: border-box;
+      width: 108ch;
+      height: calc(50vh + 16em + 6ch);
+      border: 2ch inset #2c3234;
+      border-radius: 1ch;
+      top: -2ch;
+      background-color: #191b1c;
+      left: calc(50vw - 54ch);
+      z-index: -1;
+
+    }
+
+    #output {
+      outline: thin solid var(--color-17);
+      background-color: var(--color-0);
+      color: var(--color-17);
+      font-family: var(--font), monospace;
+      min-width: 56ch;
+      display: grid;
+      grid-template-columns: repeat(56, 1fr);
+      z-index: 2;
+      margin-top: calc(18.5% - 7em);
+    }
+
+    #output div {
+      --width: 1.1ch;
+      --height: 1em;
+      max-width: var(--width);
+      min-width: var(--width);
+      max-height: var(--height);
+      min-height: var(--height);
+      overflow: hidden;
+    }
+
+  </style>
+</head>
+
+<body>
+  <main>
+    <div id="output"></div>
+  </main>
+  <script>
+    window.addEventListener('load', function () {
+      function assert(x, msg) {
+        if (!x) throw new Error(msg)
+      }
+
+      let url = window.location.search.slice(1) || 'example.js'
+      if (!/\//.test(url)) url = './' + url
+      fetch(url).then(function (response) {
+        return response.body.getReader().read()
+      }).then(function (result) {
+        (new Function('', new TextDecoder().decode(result.value) + ';window.getName=getName;window.onConnect=onConnect;window.onInput=onInput;window.onUpdate=onUpdate'))()
+
+        const output = document.getElementById('output')
+
+        const terminal = {
+          width: 56,
+          height: 20,
+          grid: []
+        }
+
+        for (let j = 0; j < terminal.height; j++) {
+          let row = []
+          for (let i = 0; i < terminal.width; i++) {
+            let el = document.createElement('div')
+            output.appendChild(el)
+            row.push(el)
+          }
+          terminal.grid.push(row)
+        }
+
+        function drawChar(char, color, x, y) {
+          if (x >= 0 && x < terminal.width && y >= 0 && y < terminal.height) {
+            const el = terminal.grid[y][x]
+            el.innerText = char
+            el.style.color = 'var(--color-' + color + ')'
+          }
+        }
+
+        window.clearScreen = function () {
+          fillArea(' ', 0, 0, 0, terminal.width, terminal.height)
+        }
+
+        window.drawText = function (text, color, x, y) {
+          text = text.toString()
+          color = color < 0 || color > 17 ? 0 : color | 0
+          x = x | 0
+          y = y | 0
+          for (let i = 0; i < text.length; i++) {
+            drawChar(text[i], color, x + i, y)
+          }
+        }
+
+        window.drawTextWrapped = function (text, color, x, y, width) {
+          color = color < 0 || color > 17 ? 0 : color | 0
+          x = x | 0
+          y = y | 0
+          let offsetX = 0, offsetY = 0
+          const words = text.match(/\s|\S+/g)
+          for (let i = 0; i < words.length; i++) {
+            const word = words[i]
+            if (offsetX + word.length > width) {
+              offsetY++
+              offsetX = 0
+              if (/\s/.test(word)) continue
+            }
+            if (/\S/.test(word)) {
+              drawText(word, color, x + offsetX, y + offsetY)
+            }
+            offsetX += word.length
+          }
+        }
+
+        window.drawBox = function (color, x, y, width, height) {
+          fillArea('═', color, x + 1, y, width - 2, 1)
+          fillArea('═', color, x + 1, y + height - 1, width - 2, 1)
+          fillArea('║', color, x, y + 1, 1, height - 2)
+          fillArea('║', color, x + width - 1, y + 1, 1, height - 2)
+          drawChar('╔', color, x, y)
+          drawChar('╗', color, x + width - 1, y)
+          drawChar('╚', color, x, y + height - 1)
+          drawChar('╝', color, x + width - 1, y + height - 1)
+        }
+
+        window.fillArea = function (symbol, color, x, y, width, height) {
+          for (let j = 0; j < height; j++) {
+            for (let i = 0; i < width; i++) {
+              drawChar(symbol, color, x + i, y + j)
+            }
+          }
+        }
+
+        assert(typeof onConnect === 'function', 'The function onConnect() is missing from the script.')
+        assert(typeof onInput === 'function', 'The function onInput() is missing from the script.')
+        assert(typeof onUpdate === 'function', 'The function onUpdate() is missing from the script.')
+        assert(typeof getName === 'function', 'The function getName() is missing from the script.')
+        assert(typeof getName() === 'string', 'The function getName() should return a string.')
+
+        document.title = getName() + ' — ' + document.title
+
+        window.addEventListener('keydown', function (event) {
+          const keyMap = {
+            "Backspace": 8,
+            "Tab": 9,
+            "Enter": 10,
+            "Escape": 27,
+            "ArrowLeft": 19,
+            "ArrowUp": 17,
+            "ArrowRight": 20,
+            "ArrowDown": 18,
+            "Delete": 127
+          }
+          if (event.ctrlKey || event.altKey) {
+            return
+          } else if (event.code in keyMap) {
+            event.preventDefault()
+            onInput(keyMap[event.code])
+          } else if (event.key.length === 1) {
+            event.preventDefault()
+            onInput(event.key.charCodeAt(0))
+          }
+        })
+
+        onConnect()
+        setInterval(onUpdate, 34)
+      })
+    })
+
+    function saveData(data) {
+      window.localStorage.setItem(getName(), data)
+    }
+
+    function loadData() {
+      return window.localStorage.getItem(getName()) || ''
+    }
+  </script>
+</body>
+
+</html>
