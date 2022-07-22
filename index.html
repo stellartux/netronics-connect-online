@@ -10,14 +10,13 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://stellartux.github.io/netronics-connect-online" />
   <meta property="og:locale" content="en_GB">
-  <meta name="description" property="og:description"
-    content="Play Last Call BBS custom servers in the browser!">
+  <meta name="description" property="og:description" content="Play Last Call BBS custom servers in the browser!">
   <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#b11a2a">
-  <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/catv-6x12-9" type="text/css"/>
+  <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/catv-6x12-9" type="text/css" />
   <style>
     :root {
-      --font: 'CatV6x129Normal'; 
+      --font: 'CatV6x129Normal';
       --color-0: #192f30;
       --color-1: #2a4546;
       --color-2: #2e4a4b;
@@ -95,10 +94,12 @@
       background-color: #191b1c;
       left: calc(50vw - 54ch);
       z-index: -1;
-
     }
 
     #output {
+      position: absolute;
+      top: calc(50vh - 10em);
+      left: calc(50vw - 30ch);
       outline: thin solid var(--color-17);
       background-color: var(--color-0);
       color: var(--color-17);
@@ -107,7 +108,6 @@
       display: grid;
       grid-template-columns: repeat(56, 1fr);
       z-index: 2;
-      margin-top: calc(18.5% - 7em);
     }
 
     #output div {
@@ -133,92 +133,108 @@
         if (!x) throw new Error(msg)
       }
 
-      let url = window.location.search.slice(1) || 'example.js'
-      if (!/\//.test(url)) url = './' + url
-      fetch(url).then(function (response) {
-        return response.body.getReader().read()
-      }).then(function (result) {
-        (new Function('', new TextDecoder().decode(result.value) + ';window.getName=getName;window.onConnect=onConnect;window.onInput=onInput;window.onUpdate=onUpdate'))()
+      const output = document.getElementById('output')
 
-        const output = document.getElementById('output')
+      const terminal = {
+        width: 56,
+        height: 20,
+        grid: []
+      }
 
-        const terminal = {
-          width: 56,
-          height: 20,
-          grid: []
+      for (let j = 0; j < terminal.height; j++) {
+        let row = []
+        for (let i = 0; i < terminal.width; i++) {
+          let el = document.createElement('div')
+          output.appendChild(el)
+          row.push(el)
         }
+        terminal.grid.push(row)
+      }
 
-        for (let j = 0; j < terminal.height; j++) {
-          let row = []
-          for (let i = 0; i < terminal.width; i++) {
-            let el = document.createElement('div')
-            output.appendChild(el)
-            row.push(el)
+      function drawChar(char, color, x, y) {
+        if (x >= 0 && x < terminal.width && y >= 0 && y < terminal.height) {
+          const el = terminal.grid[y][x]
+          el.innerText = char
+          el.style.color = 'var(--color-' + color + ')'
+        }
+      }
+
+      window.clearScreen = function () {
+        fillArea(' ', 0, 0, 0, terminal.width, terminal.height)
+      }
+
+      window.drawText = function (text, color, x, y) {
+        text = text.toString()
+        color = color < 0 || color > 17 ? 0 : color | 0
+        x = x | 0
+        y = y | 0
+        for (let i = 0; i < text.length; i++) {
+          drawChar(text[i], color, x + i, y)
+        }
+      }
+
+      window.drawTextWrapped = function (text, color, x, y, width) {
+        color = color < 0 || color > 17 ? 0 : color | 0
+        x = x | 0
+        y = y | 0
+        let offsetX = 0, offsetY = 0
+        const words = text.match(/\s|\S+/g)
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i]
+          if (offsetX + word.length > width) {
+            offsetY++
+            offsetX = 0
+            if (/\s/.test(word)) continue
           }
-          terminal.grid.push(row)
-        }
-
-        function drawChar(char, color, x, y) {
-          if (x >= 0 && x < terminal.width && y >= 0 && y < terminal.height) {
-            const el = terminal.grid[y][x]
-            el.innerText = char
-            el.style.color = 'var(--color-' + color + ')'
+          if (/\S/.test(word)) {
+            drawText(word, color, x + offsetX, y + offsetY)
           }
+          offsetX += word.length
         }
+      }
 
-        window.clearScreen = function () {
-          fillArea(' ', 0, 0, 0, terminal.width, terminal.height)
-        }
+      window.drawBox = function (color, x, y, width, height) {
+        fillArea('═', color, x + 1, y, width - 2, 1)
+        fillArea('═', color, x + 1, y + height - 1, width - 2, 1)
+        fillArea('║', color, x, y + 1, 1, height - 2)
+        fillArea('║', color, x + width - 1, y + 1, 1, height - 2)
+        drawChar('╔', color, x, y)
+        drawChar('╗', color, x + width - 1, y)
+        drawChar('╚', color, x, y + height - 1)
+        drawChar('╝', color, x + width - 1, y + height - 1)
+      }
 
-        window.drawText = function (text, color, x, y) {
-          text = text.toString()
-          color = color < 0 || color > 17 ? 0 : color | 0
-          x = x | 0
-          y = y | 0
-          for (let i = 0; i < text.length; i++) {
-            drawChar(text[i], color, x + i, y)
-          }
-        }
-
-        window.drawTextWrapped = function (text, color, x, y, width) {
-          color = color < 0 || color > 17 ? 0 : color | 0
-          x = x | 0
-          y = y | 0
-          let offsetX = 0, offsetY = 0
-          const words = text.match(/\s|\S+/g)
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i]
-            if (offsetX + word.length > width) {
-              offsetY++
-              offsetX = 0
-              if (/\s/.test(word)) continue
-            }
-            if (/\S/.test(word)) {
-              drawText(word, color, x + offsetX, y + offsetY)
-            }
-            offsetX += word.length
-          }
-        }
-
-        window.drawBox = function (color, x, y, width, height) {
-          fillArea('═', color, x + 1, y, width - 2, 1)
-          fillArea('═', color, x + 1, y + height - 1, width - 2, 1)
-          fillArea('║', color, x, y + 1, 1, height - 2)
-          fillArea('║', color, x + width - 1, y + 1, 1, height - 2)
-          drawChar('╔', color, x, y)
-          drawChar('╗', color, x + width - 1, y)
-          drawChar('╚', color, x, y + height - 1)
-          drawChar('╝', color, x + width - 1, y + height - 1)
-        }
-
-        window.fillArea = function (symbol, color, x, y, width, height) {
-          for (let j = 0; j < height; j++) {
-            for (let i = 0; i < width; i++) {
-              drawChar(symbol, color, x + i, y + j)
-            }
+      window.fillArea = function (symbol, color, x, y, width, height) {
+        for (let j = 0; j < height; j++) {
+          for (let i = 0; i < width; i++) {
+            drawChar(symbol, color, x + i, y + j)
           }
         }
+      }
 
+      window.addEventListener('keydown', function (event) {
+        const keyMap = {
+          "Backspace": 8,
+          "Tab": 9,
+          "Enter": 10,
+          "Escape": 27,
+          "ArrowLeft": 19,
+          "ArrowUp": 17,
+          "ArrowRight": 20,
+          "ArrowDown": 18,
+          "Delete": 127
+        }
+        if (event.ctrlKey || event.altKey) {
+          return
+        } else if (event.code in keyMap) {
+          onInput(keyMap[event.code])
+        } else if (event.key.length === 1) {
+          onInput(event.key.charCodeAt(0))
+        }
+        event.preventDefault()
+      })
+
+      function startGame() {
         assert(typeof onConnect === 'function', 'The function onConnect() is missing from the script.')
         assert(typeof onInput === 'function', 'The function onInput() is missing from the script.')
         assert(typeof onUpdate === 'function', 'The function onUpdate() is missing from the script.')
@@ -226,42 +242,68 @@
         assert(typeof getName() === 'string', 'The function getName() should return a string.')
 
         document.title = getName() + ' — ' + document.title
-
-        window.addEventListener('keydown', function (event) {
-          const keyMap = {
-            "Backspace": 8,
-            "Tab": 9,
-            "Enter": 10,
-            "Escape": 27,
-            "ArrowLeft": 19,
-            "ArrowUp": 17,
-            "ArrowRight": 20,
-            "ArrowDown": 18,
-            "Delete": 127
-          }
-          if (event.ctrlKey || event.altKey) {
-            return
-          } else if (event.code in keyMap) {
-            event.preventDefault()
-            onInput(keyMap[event.code])
-          } else if (event.key.length === 1) {
-            event.preventDefault()
-            onInput(event.key.charCodeAt(0))
-          }
-        })
-
         onConnect()
         setInterval(onUpdate, 34)
-      })
+      }
+
+      function onError(error) {
+        console.error(error)
+        window.getName = function () { return 'Error' }
+        window.onConnect = function () {
+          drawText('ERROR', 17, 25, 1)
+          drawTextWrapped('An error occurred. The game could not be loaded.', 15, 3, 3, 54)
+        }
+        window.onInput = window.onUpdate = function () { }
+      }
+
+      if (location.search) {
+        fetch(location.search.slice(1)).then(function (response) {
+          if (response.ok) {
+            response.body.getReader().read().then(function (result) {
+              (new Function('', new TextDecoder().decode(result.value) + ';window.getName=getName;window.onConnect=onConnect;window.onInput=onInput;window.onUpdate=onUpdate'))()
+              startGame()
+            })
+          } else {
+            onError(response)
+            startGame()
+          }
+        }).catch(function (err) {
+          onError(err)
+          startGame()
+        })
+      } else {
+        startGame()
+      }
     })
 
     function saveData(data) {
-      window.localStorage.setItem(getName(), data)
+      localStorage.setItem(getName(), data)
     }
 
     function loadData() {
-      return window.localStorage.getItem(getName()) || ''
+      return localStorage.getItem(getName()) || ''
     }
+  </script>
+  <script>
+    ////////////////////////////////
+    //
+    // If you want to embed your game in the page, replace 
+    // the contents of this script tag with your own script.
+    //
+    ////////////////////////////////
+
+    function getName() { return 'Welcome' }
+
+    function onConnect() {
+      drawText('Welcome to', 15, 8, 2)
+      drawText('NETronics Connect! On-Line', 17, 19, 2)
+      drawTextWrapped('    To load a game, add "?" then the URL of the game file to the end of the URL in the address bar. Try adding "?example.js" to see the example game.', 15, 8, 4, 38)
+    }
+
+    function onInput(key) { }
+
+    function onUpdate() { }
+
   </script>
 </body>
 
