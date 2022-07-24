@@ -154,7 +154,7 @@
       function drawChar(char, color, x, y) {
         if (x >= 0 && x < terminal.width && y >= 0 && y < terminal.height) {
           const el = terminal.grid[y][x]
-          el.innerText = char
+          el.innerText = char.replace('⚉', '💀\ufe0e')
           el.style.color = 'var(--color-' + color + ')'
         }
       }
