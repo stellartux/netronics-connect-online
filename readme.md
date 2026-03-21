@@ -15,4 +15,6 @@ To load a game, append `?` and the URL of the game to the URL of the player, i.e
 - [Flappy Birb](https://stellartux.github.io/netronics-connect-online/?https://gist.githubusercontent.com/micolous/b822a40674e5527aba42f0612a013faf/raw/9c31a8027284bb56b1e2c22e8b711b11f8a44121/flappy.js) - [Source](https://gist.github.com/micolous/b822a40674e5527aba42f0612a013faf)
 - [Hanabi](https://stellartux.github.io/netronics-connect-online/?https://raw.githubusercontent.com/arun867/last-call-bbs-server-hanabi/main/hanabi.js) - [Source](https://github.com/arun867/last-call-bbs-server-hanabi)
 - [Hoos Starzu](https://stellartux.github.io/netronics-connect-online/?https://raw.githubusercontent.com/stellartux/hoos-starzu/master/hoos-starzu.js) - [Source](https://github.com/stellartux/hoos-starzu)
+- [L.O.R.D](https://stellartux.github.io/netronics-connect-online/?https://gist.githubusercontent.com/Thorium/8a79b24e150728231ae18c4c35f85f9e/raw/37192b09cdf4b77308b25c1e7e3f6d6f11cf3679/lord.js
+) - [Source](https://gist.github.com/Thorium/8a79b24e150728231ae18c4c35f85f9e)
 - [Snake](https://stellartux.github.io/netronics-connect-online/?https://raw.githubusercontent.com/dabjulmaros/last-call-bbs-server-snake/master/dabjulmaros_snake.js)  - [Source](https://github.com/dabjulmaros/last-call-bbs-server-snake)
